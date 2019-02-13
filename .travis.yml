@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t vasan123/react-test -f ./client/Dockerfile.dev ./client
+scripts: 
+  - docker run vasan123/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t vasan123/multi-client ./client
+  - docker build -t vasan123/multi-nginx ./nginx
+  - docker build -t vasan123/multi-server ./server
+  - docker build -t vasan123/multi-worker ./worker
+  # Login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # take those images and push them to docker hub
+  - docker push vasan123/multi-client
+  - docker push vasan123/multi-nginx
+  - docker push vasan123/multi-server
+  - docker push vasan123/multi-worker
